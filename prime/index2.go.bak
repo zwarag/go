@@ -1,0 +1,170 @@
+package main
+
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+)
+
+func main() {
+
+	// input, err := readIntFromUser("Look primes up to: ")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// n, err := convertToUInt64(input)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// prime := struct{}{}
+	// primes := make(map[uint64]struct{})
+	// primes[2] = prime
+	// var primes []uint64
+
+	// pow := 49
+	pow := 32
+	number := math.Pow(float64(2), float64(pow))
+
+	n := uint64(number) - 1
+	fmt.Println(n, "has", countBits(n), "bits")
+	// top := uint64(128)
+
+	sieve := make([]bool, math.MaxInt32)
+	for i := range sieve {
+		sieve[i] = true
+	}
+	sieve[0] = false
+	sieve[1] = false
+
+	sieveRemoveMultiple(2, sieve)
+	sieveRemoveMultiple(3, sieve)
+	sieveRemoveMultiple(5, sieve)
+	sieveRemoveMultiple(7, sieve)
+	sieveRemoveMultiple(11, sieve)
+	sieveRemoveMultiple(13, sieve)
+
+
+	top := uint64(math.Floor(math.Sqrt(float64(n))))
+	fmt.Println("Will check up to:", top)
+
+	pNumbers := 0
+	for i := uint64(2); i <= top; i++ {
+		if IsPrimeSqrtSieve(i, sieve) {
+			// if IsPrimeSqrt(i) {
+			pNumbers++
+			// 	// primes[i] = prime
+		}
+	}
+
+	// for i, val := range sieve {
+	// 	fmt.Println(i, val)
+	// }
+	// fmt.Println("done, found", pNumbers, "prime numbers")
+
+	// k := uint64(281474976710655)
+	// fmt.Println(k, "has", countBits(k), "bits")
+	// fmt.Println(IsPrimeSqrt(281474976710655))
+
+}
+
+func countBits(v uint64) uint64 {
+	return uint64(math.Log2(float64(v))) + 1
+}
+
+func isPrime(v *uint64, u []uint64) bool {
+	top := uint64(math.Floor(math.Sqrt(float64(*v))))
+	for _, j := range u {
+		if j > top {
+			return true
+		}
+		if *v%j == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func isKnownPrime(v *uint64, knownPrimes *map[uint64]struct{}) bool {
+	// half := *v / 2
+	for prime, _ := range *knownPrimes {
+		if *v%prime == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func IsPrimeSqrtSieve(value uint64, sieve []bool) bool {
+	top := uint64(math.Floor(math.Sqrt(float64(value))))
+	for i := uint64(2); i <= top; i++ {
+		if sieve[i] == false {
+			continue
+		}
+		if value%i == 0 {
+			sieveRemoveMultiple(i, sieve)
+			return false
+		}
+	}
+	return value > 1
+}
+
+func sieveRemoveMultiple(n uint64, sieve []bool) {
+	for i := 2*n; i < uint64(len(sieve)); i+=n {
+		sieve[i] = false
+	}
+}
+
+func IsPrimeSqrt(value uint64) bool {
+	for i := uint64(2); i <= uint64(math.Floor(math.Sqrt(float64(value)))); i++ {
+		if value%i == 0 {
+			return false
+		}
+	}
+	return value > 1
+}
+
+func SieveOfEratosthenes(value int) {
+	f := make([]bool, value)
+	for i := int(2); i <= int(math.Sqrt(float64(value))); i++ {
+		if f[i] == false {
+			for j := i * i; j < value; j += i {
+				f[j] = true
+			}
+		}
+	}
+	for i := int(2); i < value; i++ {
+		if f[i] == false {
+			fmt.Printf("%v ", i)
+		}
+	}
+	fmt.Println("")
+}
+
+func readIntFromUser(s string) (string, error) {
+	fmt.Print(s)
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return "", errors.New("an error occurs while reading input")
+	}
+
+	input = strings.TrimSuffix(input, "\n")
+	return input, nil
+}
+
+func convertToUInt64(s string) (uint64, error) {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+	return uint64(i), nil
+}
